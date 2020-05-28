@@ -1,0 +1,9 @@
+.env
+node_modules
+.serverless/
+Gemfile.lock
+package-lock.json
+layers/dependencies/Gemfile.lock
+layers/dependencies/.bundle
+layers/dependencies/ruby/2.*
+test/data

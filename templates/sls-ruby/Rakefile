@@ -1,0 +1,49 @@
+desc 'Cleanup build artifacts'
+task :clean do
+  sh <<~BASH
+    rm -rf layers/dependencies/Gemfile.lock layers/dependencies/ruby/2.*
+    rm -rf Gemfile.lock doc/
+  BASH
+end
+
+desc 'Cleanup, including SLS plugins'
+task :mrproper do
+  sh <<~BASH
+    rm -rf layers/dependencies/Gemfile.lock layers/dependencies/ruby/2.*
+    rm -rf package-lock.json Gemfile.lock .serverless node_modules doc/ .yardoc
+  BASH
+end
+
+require 'yard'
+YARD::Rake::YardocTask.new do |t|
+  t.files = ['src/**/*.rb']
+end
+
+desc 'Deploy initial data into DynamoDB tables'
+task :seed do
+  sh <<~BASH
+    sls invoke --function seed --path data/dynamodb.json
+  BASH
+end
+
+desc 'Deploy application'
+task :deploy do
+  sh <<~BASH
+    chmod +x src/index.rb layers/dependencies/build.sh
+    sls deploy
+  BASH
+end
+
+desc 'Run interactively'
+task :interactive do
+  sh <<~BASH
+    eval $(egrep -v '^#' .env | xargs) ./src/index.rb
+  BASH
+end
+
+desc 'Request, validate and attach ACM certificate for custom domain'
+task :setup_custom_domain do
+  sh <<~BASH
+    sls create-cert && sls create_domain
+  BASH
+end

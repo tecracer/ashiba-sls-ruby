@@ -1,0 +1,90 @@
+service: <%= name %>
+
+frameworkVersion: ">=1.34.0 <2.0.0"
+
+plugins:
+  - serverless-certificate-creator
+  # - serverless-domain-manager
+  # - serverless-dotenv-plugin
+  - serverless-hooks-plugin
+  - serverless-pseudo-parameters
+
+package:
+  exclude:
+    - contrib/**
+    - data/**
+    - doc/**
+    - Gemfile
+    - "*.md"
+    - node_modules/**
+    - package*.json
+    - Rakefile
+    - test/**
+
+provider:
+  name: aws
+  runtime: ruby<%= ruby_version %>
+  region: <%= region %>
+  environment:
+    GEM_PATH: /opt/ruby/<%= ruby_version + '.0' %>
+
+custom:
+  hooks:
+    package:compileLayers:
+      - docker run -v `pwd`/layers/dependencies:`pwd` -w `pwd` lambci/lambda:build-ruby<%= ruby_version %> ./build.sh
+
+  # customCertificate:
+  #   certificateName: '*.example.com'
+  #   idempotencyToken: 'examplecom'
+  #   hostedZoneNames: 'example.com.'
+  #   rewriteRecords: false
+  # customDomain:
+  #   domainName: 'api.example.com'
+  #   certificateName: '*.example.com'
+  #   basePath: '<%= api_path %>'
+  #   stage: ${self:provider.stage}
+  #   createRoute53Record: true
+
+layers:
+  dependencies:
+    name: ${self:service}-dependencies
+    path: layers/dependencies
+    description: Include dependencies
+    compatibleRuntimes:
+      - ruby<%= ruby_version %>
+
+functions:
+  # seed:
+  #   memorySize: 128
+  #   timeout: 10
+  #   handler: src/seed.main
+
+  <%= name %>:
+    name: <%= name %>
+    memorySize: 128
+    timeout: 30
+    handler: src/index.process
+    layers:
+      - {Ref: DependenciesLambdaLayer}
+    # events:
+    #   - http:
+    #       path: /{input1}
+    #       method: GET
+    #      request:
+    #         parameters:
+    #           paths:
+    #             input1: true
+
+# resources:
+#   Resources:
+#     certTable:
+#       Type: AWS::DynamoDB::Table
+#       Properties:
+#         TableName: 'table1'
+#         AttributeDefinitions:
+#           - AttributeName: item1
+#             AttributeType: S
+#         KeySchema:
+#           - AttributeName: "item1"
+#             KeyType: HASH
+#         BillingMode: PAY_PER_REQUEST

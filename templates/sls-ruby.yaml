@@ -1,0 +1,19 @@
+---
+name: sls-ruby
+format_version: 1
+version: 1.0.0
+summary: Serverless with Ruby code
+description: |
+  Nothing right now
+variables:
+  name: ''
+  version: 0.1.0
+  author: John Doe
+  email: john@example.com
+  summary: Summary of the gem
+  description: A longer explanation of its functionality
+  url: http://example.com
+
+  ruby_version: "2.5"
+  region: eu-west-1
+  api_path: '/prod'
